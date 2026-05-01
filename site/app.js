@@ -235,11 +235,24 @@ function detectLang(text) {
 
 // ── Markdown Parser ───────────────────────────────────────────
 
+// Block javascript: in all URLs; block data: in link hrefs (phishing vector).
+// data: is allowed in img src (legitimate base64 images).
+function safeUrl(url, allowData) {
+  try {
+    const u = new URL(url, 'https://x');
+    if (u.protocol === 'javascript:') return '#';
+    if (!allowData && u.protocol === 'data:') return '#';
+  } catch { /* relative URL — pass through */ }
+  return url;
+}
+
 function parseInline(text) {
   text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   return text
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" style="max-width:100%">')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) =>
+      '<img alt="' + alt + '" src="' + safeUrl(src, true) + '" style="max-width:100%">')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, href) =>
+      '<a href="' + safeUrl(href, false) + '" target="_blank" rel="noopener noreferrer">' + text + '</a>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/___(.+?)___/g, '<strong><em>$1</em></strong>')
@@ -313,7 +326,7 @@ function parseMarkdown(md) {
       i++; continue;
     }
     if (line.trim() === '') { closeAll(); i++; continue; }
-    if (line.match(/^<[a-zA-Z]/)) { closeAll(); html += line + '\n'; i++; continue; }
+    if (line.match(/^<[a-zA-Z]/)) { closeAll(); html += escHtml(line) + '\n'; i++; continue; }
     closeUL(); closeOL();
     if (!inPara) { html += '<p>'; inPara = true; } else { html += ' '; }
     html += parseInline(line);
