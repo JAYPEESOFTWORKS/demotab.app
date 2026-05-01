@@ -345,8 +345,8 @@ function detectType(text) {
   const t = text.trimStart();
 
   // HTML detected — routes to code viewer with html highlighting
-  if (/^<!DOCTYPE\s+html/i.test(t) || /^<html[\s>]/i.test(t)) return 'html';
-  if (/^<[a-zA-Z][\w.-]*(\s[^>]*)?>/.test(t) && /<\/[a-zA-Z][\w.-]*>/.test(t)) return 'html';
+  if (/^<!DOCTYPE\s+html/i.test(t) || /^<html[\s>]/i.test(t)) return 'code';
+  if (/^<[a-zA-Z][\w.-]*(\s[^>]*)?>/.test(t) && /<\/[a-zA-Z][\w.-]*>/.test(t)) return 'code';
 
   const mdScore = [
     /^#{1,6}\s/m.test(t),
@@ -600,10 +600,9 @@ function handleDrop(e) {
 
 function dispatchText(text) {
   const effectiveMode = state.mode === 'auto' ? detectType(text) : state.mode;
-  const isCode = effectiveMode === 'code' || effectiveMode === 'html';
+  const isCode = effectiveMode === 'code';
   if (isCode) {
-    const lang = effectiveMode === 'html' ? 'html'
-               : (state.codeLang !== 'auto' ? state.codeLang : detectLang(text));
+    const lang = state.codeLang !== 'auto' ? state.codeLang : detectLang(text);
     showContent(renderCode(text, lang));
   } else if (effectiveMode === 'markdown') {
     showContent(renderMarkdown(text));
@@ -675,7 +674,6 @@ function handleKeyDown(e) {
   switch (key) {
     case 't': setMode('text');     e.preventDefault(); return;
     case 'm': setMode('markdown'); e.preventDefault(); return;
-    case 'h': setMode('html');     e.preventDefault(); return;
     case 'c': setMode('code');     e.preventDefault(); return;
     case 'i': setMode('image');    e.preventDefault(); return;
     case 'a': setMode('auto');     e.preventDefault(); return;
