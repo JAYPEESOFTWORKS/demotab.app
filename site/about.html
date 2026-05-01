@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DemoTab — paste anything, display beautifully. Nothing ever leaves your browser. Learn how it works.">
+  <title>About DemoTab</title>
+
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #ffffff;
+      --surface:   #f8f9fa;
+      --border:    #e8eaed;
+      --text:      #202124;
+      --text-sub:  #5f6368;
+      --text-muted:#9aa0a6;
+      --accent:    #1967d2;
+      --font:      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --radius:    10px;
+    }
+
+    html, body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(16px, 5vw, 80px);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .logo { text-decoration: none; display: flex; align-items: center; }
+    .logo img { height: 30px; width: auto; display: block; }
+
+    .open-app {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .open-app:hover { opacity: .88; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: clamp(48px, 10vw, 100px) clamp(16px, 5vw, 80px);
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #e8f0fe;
+      border-radius: 20px;
+      padding: 4px 12px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--text-sub);
+      line-height: 1.65;
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--bg);
+      background: var(--accent);
+      border-radius: 10px;
+      padding: 14px 32px;
+      text-decoration: none;
+      transition: opacity .15s, transform .15s;
+    }
+    .hero-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+    /* ── Sections ── */
+    .content {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 5vw, 80px) 80px;
+    }
+
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .section h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -.5px;
+      margin-bottom: 14px;
+    }
+
+    .section p {
+      font-size: 16px;
+      color: var(--text-sub);
+      line-height: 1.75;
+      margin-bottom: 12px;
+    }
+
+    /* ── Feature Grid ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin: 32px 0;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .feature-icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .feature-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* ── Privacy callout ── */
+    .privacy-box {
+      background: #e8f0fe;
+      border: 1px solid #c5d9fb;
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin: 28px 0;
+    }
+
+    .privacy-box h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .privacy-box p {
+      font-size: 14px;
+      color: #174ea6;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .privacy-box code {
+      font-family: 'Consolas', 'Menlo', monospace;
+      font-size: 12px;
+      background: rgba(255,255,255,.6);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    /* ── Sponsor ── */
+    .sponsor-section {
+      border-top: 1px solid var(--border);
+      padding-top: 40px;
+      text-align: center;
+    }
+
+    .sponsor-section p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .sponsor-link {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-sub);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .sponsor-link:hover { color: var(--accent); }
+
+    /* ── Footer ── */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 20px clamp(16px, 5vw, 80px);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="logo" href="index.html" title="DemoTab"><img src="logo_full.svg" alt="DemoTab"></a>
+    <a class="open-app" href="index.html" target="_blank">Open DemoTab →</a>
+  </header>
+
+  <section class="hero">
+    <div class="hero-badge">Free &amp; Open</div>
+    <h1>Your browser tab,<br>as a presentation tool.</h1>
+    <p>Paste text, markdown, HTML, source code, or an image and share your screen. Nothing is uploaded. Nothing is stored. Nothing leaves your browser.</p>
+    <a class="hero-cta" href="index.html" target="_blank">Open DemoTab</a>
+  </section>
+
+  <div class="content">
+
+    <div class="section">
+      <div class="section-label">What it does</div>
+      <h2>Paste anything. Display beautifully.</h2>
+      <p>DemoTab is a single browser tab you load before a screen share or presentation. Paste your content — code, markdown notes, a screenshot, a block of text — and it renders cleanly for your audience without any of the distractions of your usual editor.</p>
+
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">📝</div>
+          <h3>Plain Text</h3>
+          <p>Clean, readable typography. No line-wrap surprises, no clutter.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">#️⃣</div>
+          <h3>Markdown</h3>
+          <p>Headers, lists, bold, links, tables, code blocks — all rendered.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌐</div>
+          <h3>HTML</h3>
+          <p>Full HTML preview in a sandboxed frame. Great for showing mockups.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💻</div>
+          <h3>Source Code</h3>
+          <p>Syntax highlighting for 10+ languages with line numbers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖼️</div>
+          <h3>Images</h3>
+          <p>Paste or drop any image. Displayed centered on a neutral background.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Auto-detect</h3>
+          <p>Paste anything — DemoTab figures out what it is automatically.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Privacy</div>
+      <h2>We genuinely cannot see what you paste.</h2>
+      <p>This isn't just a promise — it's enforced by your browser. DemoTab ships with a Content Security Policy header that makes external network requests technically impossible:</p>
+
+      <div class="privacy-box">
+        <h3>Content-Security-Policy</h3>
+        <p><code>connect-src 'none'</code> — The browser will refuse any attempt by the app to send data anywhere. You can verify this yourself by opening DevTools on the DemoTab tab and checking the response headers. No code we could ever write would override it.</p>
+      </div>
+
+      <p>All rendering happens locally using your browser's built-in capabilities. There are no servers receiving your content, no logs, no databases.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-label">How to use it</div>
+      <h2>Three steps.</h2>
+      <p><strong>1.</strong> Open <a href="index.html" style="color:var(--accent)" target="_blank">demotab.app</a> in a tab before your screen share or presentation.</p>
+      <p><strong>2.</strong> Share that tab (or your whole screen) with your audience.</p>
+      <p><strong>3.</strong> Paste or drop whatever you want to show. It renders instantly. Press <strong>Esc</strong> or click <strong>Clear</strong> to reset.</p>
+    </div>
+
+    <div class="sponsor-section">
+      <p>DemoTab is free and ad-free, made possible by</p>
+      <a class="sponsor-link" href="https://jaypeesoftworks.com" target="_blank" rel="noopener">JayPee Softworks</a>
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    &copy; <script>document.write(new Date().getFullYear())</script> DemoTab &nbsp;·&nbsp;
+    <a href="index.html" style="color:inherit">Open the app</a>
+  </footer>
+
+</body>
+</html>

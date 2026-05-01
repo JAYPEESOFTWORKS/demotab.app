@@ -1,0 +1,14 @@
+{
+  "name": "demotab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Paste anything. Display beautifully. Nothing leaves your browser.",
+  "homepage": "https://demotab.app",
+  "scripts": {
+    "dev": "npx serve . --cors --no-clipboard",
+    "lint": "npx eslint app.js"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}

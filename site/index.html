@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Paste anything. Display beautifully. Nothing leaves your browser.">
+  <meta name="robots" content="noindex">
+  <title>DemoTab</title>
+  <link rel="stylesheet" href="app.css">
+  <!-- No external resources. No analytics. No fonts. No CDN. -->
+  <!-- Everything you paste stays in this tab. -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ── -->
+  <header id="header">
+    <a class="logo" href="index.html" title="DemoTab"><img src="logo_full.svg" alt="DemoTab" class="logo-img"></a>
+
+    <div class="header-center">
+      <div class="type-selector" role="group" aria-label="Content type">
+        <button class="type-btn active" data-mode="auto"     title="Auto-detect content type">Auto</button>
+        <button class="type-btn"        data-mode="text"     title="Plain text">Text</button>
+        <button class="type-btn"        data-mode="markdown" title="Markdown">Markdown</button>
+        <button class="type-btn"        data-mode="html"     title="HTML preview">HTML</button>
+        <button class="type-btn"        data-mode="code"     title="Source code with highlighting">Code</button>
+        <button class="type-btn"        data-mode="image"    title="Image (paste or drop)">Image</button>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-font-dec" class="btn-sm btn-font-dec" title="Decrease font size (-)">A−</button>
+      <button id="btn-font-inc" class="btn-sm btn-font-inc" title="Increase font size (+)">A+</button>
+      <button id="clear-btn"   class="btn-sm btn-clear" title="Clear (Esc)">Clear</button>
+    </div>
+  </header>
+
+  <!-- ── Main ── -->
+  <main id="main">
+
+    <!-- Drop zone (shown when empty) -->
+    <div id="drop-zone" role="main" aria-label="Paste or drop content here">
+      <div class="drop-ring" aria-hidden="true"></div>
+
+      <svg class="drop-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2.5" fill="none"/>
+        <path d="M16 22h16M16 28h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M24 10V6M20 6h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+
+      <p class="drop-title">Paste with confidence. Nothing leaves your browser.</p>
+      <p class="drop-hint">
+        Press <kbd>Ctrl+V</kbd> or <kbd>⌘V</kbd> &nbsp;·&nbsp; or drop a file
+      </p>
+
+      <button id="btn-paste" class="btn-paste" disabled>
+        Paste from clipboard
+      </button>
+
+      <a class="drop-about" href="about.html" target="_blank" rel="noopener">
+        What is DemoTab?
+      </a>
+    </div>
+
+    <!-- Content area (shown when content is loaded) -->
+    <div id="content-area" role="region" aria-label="Content display area"></div>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer id="footer">
+    <span class="footer-label">Presented by</span>
+    <a class="footer-sponsor" href="https://jaypeesoftworks.com" target="_blank" rel="noopener">JayPee Softworks</a>
+  </footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
