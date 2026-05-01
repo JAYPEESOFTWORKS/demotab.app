@@ -104,4 +104,4 @@ Any modern browser (Chrome, Edge, Firefox, Safari). The Clipboard API (`navigato
 
 ## Made by
 
-JayPee Softworks
+Jaypee Softworks

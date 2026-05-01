@@ -5,8 +5,8 @@
   "description": "Paste anything. Display beautifully. Nothing leaves your browser.",
   "homepage": "https://demotab.app",
   "scripts": {
-    "dev": "npx serve . --cors --no-clipboard",
-    "lint": "npx eslint app.js"
+    "dev": "npx serve site --cors --no-clipboard",
+    "lint": "npx eslint site/app.js"
   },
   "devDependencies": {
     "serve": "^14.0.0"
