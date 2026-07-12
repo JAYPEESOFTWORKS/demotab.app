@@ -4,18 +4,20 @@ import type { Project } from '../types';
 import { useStore } from '../store';
 import { theme } from '../theme';
 import { FlowScreen } from './FlowScreen';
+import { ThreadsScreen } from './ThreadsScreen';
 import { EntitiesScreen } from './EntitiesScreen';
-import { VariablesScreen } from './VariablesScreen';
+import { StateScreen } from './StateScreen';
 import { LocationsScreen } from './LocationsScreen';
 import { SimulationModal } from './SimulationModal';
 
-type Tab = 'flow' | 'entities' | 'variables' | 'locations';
+type Tab = 'flow' | 'threads' | 'entities' | 'state' | 'locations';
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: 'flow', label: 'Flow', icon: '⧉' },
-  { key: 'entities', label: 'Entities', icon: '☻' },
-  { key: 'variables', label: 'Variables', icon: '𝑥' },
-  { key: 'locations', label: 'Locations', icon: '⌖' },
+  { key: 'threads', label: 'Threads', icon: '⑃' },
+  { key: 'entities', label: 'Cast', icon: '☻' },
+  { key: 'state', label: 'State', icon: '𝑥' },
+  { key: 'locations', label: 'Places', icon: '⌖' },
 ];
 
 interface Props {
@@ -62,8 +64,9 @@ export function ProjectScreen({ project, onBack }: Props) {
             onPlayFrom={(nodeId) => setPlayer({ visible: true, startNodeId: nodeId })}
           />
         ) : null}
+        {tab === 'threads' ? <ThreadsScreen project={project} updateProject={update} /> : null}
         {tab === 'entities' ? <EntitiesScreen project={project} updateProject={update} /> : null}
-        {tab === 'variables' ? <VariablesScreen project={project} updateProject={update} /> : null}
+        {tab === 'state' ? <StateScreen project={project} updateProject={update} /> : null}
         {tab === 'locations' ? <LocationsScreen project={project} updateProject={update} /> : null}
       </View>
 

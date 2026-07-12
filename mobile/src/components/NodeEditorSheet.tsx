@@ -124,6 +124,25 @@ export function NodeEditorSheet({
         />
       ) : null}
 
+      {node.kind === 'media_beat' ? (
+        <>
+          <View style={sub.hintBox}>
+            <Text style={sub.hintText}>
+              A media beat marks where rich interactive content goes in the finished game — a drone
+              view, a video clip, a mini-game. Describe it here; the player sees this text as a
+              placeholder while you design the story.
+            </Text>
+          </View>
+          <Field
+            label="What the player sees / does"
+            value={node.text}
+            onChangeText={(t) => patch({ text: t })}
+            placeholder="Player flies the drone over the ravine and spots the wreck…"
+            multiline
+          />
+        </>
+      ) : null}
+
       {node.kind === 'jump' ? (
         <View style={{ marginBottom: 14 }}>
           <Text style={sub.label}>Jump target</Text>
@@ -176,6 +195,73 @@ export function NodeEditorSheet({
         mono
         error={validateScript(node.outputPinScript)}
       />
+
+      <Text style={sub.label}>Requires items (blocks entry until held)</Text>
+      {project.items.length === 0 ? (
+        <Text style={sub.emptyHint}>
+          No items yet. Add them under State › Items to gate this node on the player holding something.
+        </Text>
+      ) : (
+        <View style={sub.chipWrap}>
+          {project.items.map((item) => {
+            const active = node.requiresItems.includes(item.id);
+            return (
+              <Chip
+                key={item.id}
+                label={item.name}
+                active={active}
+                color={theme.accent}
+                onPress={() =>
+                  patch({
+                    requiresItems: active
+                      ? node.requiresItems.filter((id) => id !== item.id)
+                      : [...node.requiresItems, item.id],
+                  })
+                }
+              />
+            );
+          })}
+        </View>
+      )}
+
+      {project.items.length > 0 ? (
+        <>
+          <Text style={sub.label}>Grants items (given when leaving)</Text>
+          <View style={sub.chipWrap}>
+            {project.items.map((item) => {
+              const active = node.grantsItems.includes(item.id);
+              return (
+                <Chip
+                  key={item.id}
+                  label={item.name}
+                  active={active}
+                  color={theme.ok}
+                  onPress={() =>
+                    patch({
+                      grantsItems: active
+                        ? node.grantsItems.filter((id) => id !== item.id)
+                        : [...node.grantsItems, item.id],
+                    })
+                  }
+                />
+              );
+            })}
+          </View>
+        </>
+      ) : null}
+
+      <Pressable style={sub.endingRow} onPress={() => patch({ isEnding: !node.isEnding })}>
+        <View style={[sub.checkbox, node.isEnding && { backgroundColor: theme.accent, borderColor: theme.accent }]}>
+          {node.isEnding ? <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>✓</Text> : null}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: theme.text, fontSize: 14, fontWeight: '600' }}>Story ending</Text>
+          <Text style={{ color: theme.dim, fontSize: 12, marginTop: 1 }}>
+            Reaching this node completes the whole story (the goal). Combine with “requires items” so it
+            only opens once every piece is collected.
+          </Text>
+        </View>
+      </Pressable>
 
       <Text style={sub.label}>Color</Text>
       <Row style={{ alignItems: 'flex-start' }}>
@@ -253,6 +339,37 @@ const sub = {
     textTransform: 'uppercase' as const,
     letterSpacing: 0.5,
     marginBottom: 6,
+  },
+  chipWrap: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 8, marginBottom: 14 },
+  emptyHint: { color: theme.faint, fontSize: 12, marginBottom: 14, lineHeight: 17 },
+  hintBox: {
+    backgroundColor: '#2a1f16',
+    borderWidth: 1,
+    borderColor: '#e07b39',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  hintText: { color: '#f0c9a8', fontSize: 12, lineHeight: 17 },
+  endingRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    gap: 10,
+    backgroundColor: theme.panel,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: theme.border,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   pickerButton: {
     backgroundColor: theme.panel,

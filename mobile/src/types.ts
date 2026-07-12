@@ -26,7 +26,9 @@ export type NodeKind =
   | 'hub' // routing / choice point
   | 'jump' // go-to another node
   | 'condition' // branches on a script expression (true / false pins)
-  | 'instruction'; // executes a script, then continues
+  | 'instruction' // executes a script, then continues
+  | 'media_beat'; // placeholder for rich interactive content built later
+                  // (a drone view, a mini-game, a video clip, …)
 
 export interface FlowNode {
   id: string;
@@ -48,6 +50,9 @@ export interface FlowNode {
   y: number;
   inputPinScript: string; // condition evaluated before entering (empty = true)
   outputPinScript: string; // instruction executed when leaving (empty = none)
+  requiresItems: string[]; // Item ids that must be held before this node can be entered
+  grantsItems: string[]; // Item ids the player gains when leaving this node
+  isEnding: boolean; // reaching this node completes the whole story (the goal)
 }
 
 // Condition nodes have two output pins: 0 = true, 1 = false.
@@ -81,6 +86,28 @@ export interface LocationItem {
   description: string;
 }
 
+// A collectible piece of story state. Modeled as a global flag ("obtained" /
+// "not obtained") so one thread granting an item can unlock another. Items are
+// exposed to scripts as `items.<key>` booleans, so conditions can also read
+// them directly (e.g. `items.access_card && story.alarmOff`).
+export interface Item {
+  id: string;
+  key: string; // identifier, referenced in scripts as items.<key>
+  name: string; // display name
+  description: string;
+}
+
+// A parallel storyline the player can switch between. Threads share all global
+// state (variables + items), so progress in one can gate another. A project
+// with no threads plays as a single linear flow.
+export interface StoryThread {
+  id: string;
+  name: string;
+  characterId: string | null; // Entity that anchors this thread (optional)
+  startNodeId: string | null; // node where this thread begins
+  color: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -91,6 +118,8 @@ export interface Project {
   entities: Entity[];
   locations: LocationItem[];
   variableSets: VariableSet[];
+  items: Item[];
+  threads: StoryThread[];
 }
 
 export const PROJECT_EXPORT_FORMAT = 'storydraft.project.v1';

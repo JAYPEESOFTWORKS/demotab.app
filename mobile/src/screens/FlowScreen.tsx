@@ -31,6 +31,7 @@ const ADDABLE: { kind: NodeKind; hint: string }[] = [
   { kind: 'hub', hint: 'Routing point. Multiple outputs become player choices.' },
   { kind: 'condition', hint: 'Branches on an expression: green pin = true, red pin = false.' },
   { kind: 'instruction', hint: 'Runs a script (set variables), then continues.' },
+  { kind: 'media_beat', hint: 'Placeholder for a rich interactive moment you’ll build later.' },
   { kind: 'jump', hint: 'Continues at any other node in the project.' },
 ];
 

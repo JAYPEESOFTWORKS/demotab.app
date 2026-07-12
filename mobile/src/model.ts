@@ -2,11 +2,13 @@ import type {
   Connection,
   Entity,
   FlowNode,
+  Item,
   LocationItem,
   NodeKind,
   Project,
   ProjectExport,
   ScriptValue,
+  StoryThread,
   Variable,
   VariableSet,
   VariableType,
@@ -30,6 +32,7 @@ export const NODE_KIND_LABEL: Record<NodeKind, string> = {
   jump: 'Jump',
   condition: 'Condition',
   instruction: 'Instruction',
+  media_beat: 'Media Beat',
 };
 
 export const NODE_KIND_COLOR: Record<NodeKind, string> = {
@@ -40,6 +43,7 @@ export const NODE_KIND_COLOR: Record<NodeKind, string> = {
   jump: '#8a8f98',
   condition: '#c25b5b',
   instruction: '#3aa7a3',
+  media_beat: '#e07b39',
 };
 
 export function isContainer(kind: NodeKind): boolean {
@@ -62,6 +66,9 @@ export function createNode(kind: NodeKind, parentId: string | null, x: number, y
     y,
     inputPinScript: '',
     outputPinScript: '',
+    requiresItems: [],
+    grantsItems: [],
+    isEnding: false,
   };
 }
 
@@ -71,6 +78,33 @@ export function createEntity(name: string): Entity {
 
 export function createLocation(name: string): LocationItem {
   return { id: makeId(), name, description: '' };
+}
+
+const THREAD_COLORS = ['#4f8cff', '#e07b39', '#2f9e69', '#c95fa4', '#d6a03c', '#7a5cd6'];
+
+export function createItem(name: string, key: string): Item {
+  return { id: makeId(), name, key, description: '' };
+}
+
+export function createStoryThread(name: string, index = 0): StoryThread {
+  return {
+    id: makeId(),
+    name,
+    characterId: null,
+    startNodeId: null,
+    color: THREAD_COLORS[index % THREAD_COLORS.length]!,
+  };
+}
+
+/** Turns a free-text item name into a safe `items.<key>` identifier. */
+export function slugifyKey(name: string): string {
+  const base = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .replace(/^([0-9])/, '_$1');
+  return base || 'item';
 }
 
 export function createVariableSet(name: string): VariableSet {
@@ -99,6 +133,8 @@ export function createProject(name: string): Project {
     entities: [],
     locations: [],
     variableSets: [],
+    items: [],
+    threads: [],
   };
 }
 
@@ -110,6 +146,21 @@ export function nodeById(project: Project, id: string | null): FlowNode | undefi
 export function entityById(project: Project, id: string | null): Entity | undefined {
   if (!id) return undefined;
   return project.entities.find((e) => e.id === id);
+}
+
+export function itemById(project: Project, id: string | null): Item | undefined {
+  if (!id) return undefined;
+  return project.items.find((i) => i.id === id);
+}
+
+export function threadById(project: Project, id: string | null): StoryThread | undefined {
+  if (!id) return undefined;
+  return project.threads.find((t) => t.id === id);
+}
+
+/** Env key a script uses to read an item's obtained-state: `items.<key>`. */
+export function itemEnvKey(item: Item): string {
+  return `items.${item.key}`;
 }
 
 export function childrenOf(project: Project, parentId: string | null): FlowNode[] {
@@ -171,6 +222,10 @@ export function initialVarEnv(project: Project): VarEnv {
       env[`${set.name}.${v.name}`] = v.defaultValue;
     }
   }
+  // Items begin un-obtained and live in the same env under `items.<key>`.
+  for (const item of project.items) {
+    env[itemEnvKey(item)] = false;
+  }
   return env;
 }
 
@@ -193,12 +248,26 @@ export function parseProjectImport(raw: string): Project {
   ) {
     throw new Error('Not a valid StoryDraft project export');
   }
-  return {
-    ...createProject(candidate.name),
+  const base = createProject(candidate.name);
+  const merged = {
+    ...base,
     ...candidate,
     id: makeId(), // never collide with an existing project
     updatedAt: Date.now(),
   };
+  // Backfill fields added after older exports were written, and normalize nodes.
+  merged.items = Array.isArray(candidate.items) ? candidate.items : [];
+  merged.threads = Array.isArray(candidate.threads) ? candidate.threads : [];
+  merged.locations = Array.isArray(candidate.locations) ? candidate.locations : [];
+  merged.variableSets = Array.isArray(candidate.variableSets) ? candidate.variableSets : [];
+  merged.entities = Array.isArray(candidate.entities) ? candidate.entities : [];
+  merged.nodes = merged.nodes.map((n) => ({
+    ...n,
+    requiresItems: Array.isArray(n.requiresItems) ? n.requiresItems : [],
+    grantsItems: Array.isArray(n.grantsItems) ? n.grantsItems : [],
+    isEnding: typeof n.isEnding === 'boolean' ? n.isEnding : false,
+  }));
+  return merged;
 }
 
 /** Deep copy with a fresh project id. */
@@ -212,10 +281,164 @@ export function duplicateProject(project: Project, name: string): Project {
 }
 
 // ---------------------------------------------------------------------------
-// Sample project seeded on first launch so the app demonstrates itself.
+// Sample project seeded on first launch. It teaches the signature pattern:
+// several parallel threads that share an inventory, where progress in one
+// thread unlocks another, and a single ending that only opens once the
+// required pieces have been gathered across all of them.
 // ---------------------------------------------------------------------------
 
 export function createSampleProject(): Project {
+  const project = createProject('Signal Night (tutorial)');
+
+  const theo = createEntity('Theo');
+  theo.color = '#4f8cff';
+  theo.description = 'In the basement, wrestling the building’s ancient wiring.';
+  const mara = createEntity('Mara');
+  mara.color = '#e07b39';
+  mara.description = 'On the roof with the radio dish, waiting on a way in.';
+  const priya = createEntity('Priya');
+  priya.color = '#2f9e69';
+  priya.description = 'At the control console, ready to catch the signal.';
+  project.entities = [theo, mara, priya];
+
+  // Items are the pieces that pass between threads.
+  const power = createItem('Main power', 'power');
+  power.description = 'Theo brings the mains up; Priya’s console needs it.';
+  const roofKey = createItem('Roof hatch key', 'roof_key');
+  roofKey.description = 'Theo finds it; Mara needs it to reach the dish gears.';
+  const dishAligned = createItem('Dish aligned', 'dish_aligned');
+  dishAligned.description = 'Mara locks the dish on target; the finale needs it.';
+  project.items = [power, roofKey, dishAligned];
+
+  const grants = (n: FlowNode, ...ids: string[]) => (n.grantsItems = ids);
+  const requires = (n: FlowNode, ...ids: string[]) => (n.requiresItems = ids);
+
+  // --- Thread containers (top level) --------------------------------------
+  const basement = createNode('flow_fragment', null, 60, 60);
+  basement.displayName = 'Basement — Theo';
+  const roof = createNode('flow_fragment', null, 60, 260);
+  roof.displayName = 'Rooftop — Mara';
+  const control = createNode('flow_fragment', null, 60, 460);
+  control.displayName = 'Control Room — Priya';
+
+  // --- Theo (basement): grants power + roof key, then done ----------------
+  const t1 = createNode('dialogue_fragment', basement.id, 40, 60);
+  t1.displayName = 'Fuse box';
+  t1.speakerId = theo.id;
+  t1.text = 'The fuse box is a rat’s nest, but I can bring the mains up. Give me a second.';
+  const t2 = createNode('dialogue_fragment', basement.id, 320, 60);
+  t2.displayName = 'Power up';
+  t2.speakerId = theo.id;
+  t2.text = 'Power’s back. And a brass key was hanging by the panel — must be the roof hatch. Sending it up.';
+  grants(t2, power.id, roofKey.id);
+  const t3 = createNode('dialogue_fragment', basement.id, 600, 60);
+  t3.displayName = 'Holding down here';
+  t3.speakerId = theo.id;
+  t3.text = 'I’ll keep the mains steady. Over to you two.';
+
+  // --- Mara (roof): blocked until the key exists, then a real choice ------
+  const m1 = createNode('dialogue_fragment', roof.id, 40, 60);
+  m1.displayName = 'Locked out';
+  m1.speakerId = mara.id;
+  m1.text = 'The dish is frozen and the gearbox hatch is locked. I can’t do a thing up here yet.';
+  const m2 = createNode('dialogue_fragment', roof.id, 320, 60);
+  m2.displayName = 'Hatch open';
+  m2.speakerId = mara.id;
+  m2.text = 'Got Theo’s key — hatch is open. The gears are stiff with old grease.';
+  requires(m2, roofKey.id);
+  const mHub = createNode('hub', roof.id, 600, 60);
+  mHub.displayName = 'Free the dish';
+  const mForce = createNode('dialogue_fragment', roof.id, 880, -40);
+  mForce.displayName = 'Force it';
+  mForce.menuText = 'Force the gears by hand';
+  mForce.speakerId = mara.id;
+  mForce.text = 'I’ll muscle it… no — something cracked. The bearing’s shot. It won’t align now.';
+  const mOil = createNode('dialogue_fragment', roof.id, 880, 160);
+  mOil.displayName = 'Oil first';
+  mOil.menuText = 'Oil the gears, then turn';
+  mOil.speakerId = mara.id;
+  mOil.text = 'Oil first, then a slow turn — there. The dish swings free and locks on target.';
+  grants(mOil, dishAligned.id);
+
+  // --- Priya (control): needs power, then waits on the dish, then ending --
+  const p1 = createNode('dialogue_fragment', control.id, 40, 60);
+  p1.displayName = 'Dead console';
+  p1.speakerId = priya.id;
+  p1.text = 'Console’s dark. Nothing happens here until the mains come up.';
+  const p2 = createNode('dialogue_fragment', control.id, 320, 60);
+  p2.displayName = 'Booting';
+  p2.speakerId = priya.id;
+  p2.text = 'Power’s on — console’s alive. Receivers calibrated. Now I just need the dish pointed.';
+  requires(p2, power.id);
+  const p3 = createNode('dialogue_fragment', control.id, 600, 60);
+  p3.displayName = 'Standing by';
+  p3.speakerId = priya.id;
+  p3.text = 'Locked and ready on my end. Waiting on the dish…';
+  const pBeat = createNode('media_beat', control.id, 880, 60);
+  pBeat.displayName = 'Receiver waterfall';
+  pBeat.text =
+    'INTERACTIVE MOMENT: the player watches the live receiver waterfall as the dish settles, and taps the faint trace when it appears.';
+  requires(pBeat, dishAligned.id);
+  const pEnd = createNode('dialogue_fragment', control.id, 1160, 60);
+  pEnd.displayName = 'We caught it';
+  pEnd.speakerId = priya.id;
+  pEnd.text = 'There it is. Faint, but unmistakable. Everyone — we caught the signal.';
+  pEnd.isEnding = true;
+
+  project.nodes = [
+    basement,
+    roof,
+    control,
+    t1,
+    t2,
+    t3,
+    m1,
+    m2,
+    mHub,
+    mForce,
+    mOil,
+    p1,
+    p2,
+    p3,
+    pBeat,
+    pEnd,
+  ];
+
+  const link = (
+    parentId: string | null,
+    sourceId: string,
+    targetId: string,
+    sourcePin: 0 | 1 = 0,
+    label = ''
+  ): Connection => ({ id: makeId(), parentId, sourceId, sourcePin, targetId, label });
+
+  project.connections = [
+    // Theo
+    link(basement.id, t1.id, t2.id),
+    link(basement.id, t2.id, t3.id),
+    // Mara
+    link(roof.id, m1.id, m2.id),
+    link(roof.id, m2.id, mHub.id),
+    link(roof.id, mHub.id, mForce.id),
+    link(roof.id, mHub.id, mOil.id),
+    // Priya
+    link(control.id, p1.id, p2.id),
+    link(control.id, p2.id, p3.id),
+    link(control.id, p3.id, pBeat.id),
+    link(control.id, pBeat.id, pEnd.id),
+  ];
+
+  project.threads = [
+    { ...createStoryThread('Theo — Basement', 0), characterId: theo.id, startNodeId: basement.id },
+    { ...createStoryThread('Mara — Rooftop', 1), characterId: mara.id, startNodeId: roof.id },
+    { ...createStoryThread('Priya — Control', 2), characterId: priya.id, startNodeId: control.id },
+  ];
+
+  return project;
+}
+
+/** The original single-thread example, kept as an alternate sample. */
+export function createTollBridgeProject(): Project {
   const project = createProject('The Toll Bridge (sample)');
 
   const guard = createEntity('Bridge Guard');

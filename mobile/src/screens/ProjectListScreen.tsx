@@ -80,8 +80,8 @@ export function ProjectListScreen({ onOpen }: Props) {
           <Pressable style={styles.card} onPress={() => onOpen(item.id)}>
             <Text style={styles.cardTitle}>{item.name}</Text>
             <Text style={styles.cardSub}>
-              {item.nodes.length} nodes · {item.entities.length} entities ·{' '}
-              {item.variableSets.reduce((n, s) => n + s.variables.length, 0)} variables
+              {item.nodes.length} nodes · {item.threads.length} threads · {item.entities.length} cast ·{' '}
+              {item.items.length} items
             </Text>
             <Text style={[styles.cardSub, { color: theme.faint }]}>
               Updated {new Date(item.updatedAt).toLocaleString()}

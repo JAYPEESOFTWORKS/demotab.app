@@ -104,6 +104,17 @@ const NodeView = React.memo(function NodeView(props: NodeViewProps) {
             {snippet}
           </Text>
         ) : null}
+        {node.requiresItems.length || node.grantsItems.length || node.isEnding ? (
+          <View style={styles.badgeRow}>
+            {node.requiresItems.length ? (
+              <Text style={[styles.badge, { color: theme.accent }]}>🔒 {node.requiresItems.length}</Text>
+            ) : null}
+            {node.grantsItems.length ? (
+              <Text style={[styles.badge, { color: theme.ok }]}>🎁 {node.grantsItems.length}</Text>
+            ) : null}
+            {node.isEnding ? <Text style={[styles.badge, { color: '#e0b84a' }]}>★ end</Text> : null}
+          </View>
+        ) : null}
       </View>
       {node.kind === 'condition' ? (
         <>
@@ -309,6 +320,8 @@ const styles = StyleSheet.create({
   nodeBody: { paddingHorizontal: 8, paddingVertical: 6 },
   nodeName: { color: theme.text, fontSize: 13, fontWeight: '600' },
   nodeSnippet: { color: theme.dim, fontSize: 11, marginTop: 2, lineHeight: 14 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
+  badge: { fontSize: 10, fontWeight: '700' },
   pinDot: {
     position: 'absolute',
     right: -1,
