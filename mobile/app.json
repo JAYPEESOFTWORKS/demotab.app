@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "StoryDraft",
+    "slug": "storydraft",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#14161a",
+    "newArchEnabled": true,
+    "platforms": ["ios", "android"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jaypeesoftworks.storydraft"
+    },
+    "android": {
+      "package": "com.jaypeesoftworks.storydraft"
+    }
+  }
+}
