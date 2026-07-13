@@ -27,6 +27,7 @@ export type NodeKind =
   | 'jump' // go-to another node
   | 'condition' // branches on a script expression (true / false pins)
   | 'instruction' // executes a script, then continues
+  | 'narration' // narrator / cutscene prose (no character), then continues
   | 'media_beat'; // placeholder for rich interactive content built later
                   // (a drone view, a mini-game, a video clip, …)
 

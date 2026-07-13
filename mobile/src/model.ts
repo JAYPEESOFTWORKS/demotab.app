@@ -32,6 +32,7 @@ export const NODE_KIND_LABEL: Record<NodeKind, string> = {
   jump: 'Jump',
   condition: 'Condition',
   instruction: 'Instruction',
+  narration: 'Narration',
   media_beat: 'Media Beat',
 };
 
@@ -43,6 +44,7 @@ export const NODE_KIND_COLOR: Record<NodeKind, string> = {
   jump: '#8a8f98',
   condition: '#c25b5b',
   instruction: '#3aa7a3',
+  narration: '#6d7789',
   media_beat: '#e07b39',
 };
 
@@ -379,7 +381,11 @@ export function createSampleProject(): Project {
   pBeat.text =
     'INTERACTIVE MOMENT: the player watches the live receiver waterfall as the dish settles, and taps the faint trace when it appears.';
   requires(pBeat, dishAligned.id);
-  const pEnd = createNode('dialogue_fragment', control.id, 1160, 60);
+  const pNarr = createNode('narration', control.id, 1160, 60);
+  pNarr.displayName = 'The narrator ties it together';
+  pNarr.text =
+    'Across the observatory, three strangers who had started the night in three separate rooms felt the same hush fall — power humming, dish steady, the sky finally listening.';
+  const pEnd = createNode('dialogue_fragment', control.id, 1440, 60);
   pEnd.displayName = 'We caught it';
   pEnd.speakerId = priya.id;
   pEnd.text = 'There it is. Faint, but unmistakable. Everyone — we caught the signal.';
@@ -401,6 +407,7 @@ export function createSampleProject(): Project {
     p2,
     p3,
     pBeat,
+    pNarr,
     pEnd,
   ];
 
@@ -425,7 +432,8 @@ export function createSampleProject(): Project {
     link(control.id, p1.id, p2.id),
     link(control.id, p2.id, p3.id),
     link(control.id, p3.id, pBeat.id),
-    link(control.id, pBeat.id, pEnd.id),
+    link(control.id, pBeat.id, pNarr.id),
+    link(control.id, pNarr.id, pEnd.id),
   ];
 
   project.threads = [

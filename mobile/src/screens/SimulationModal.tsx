@@ -59,7 +59,8 @@ function Playback({
 }) {
   const node = snap.node;
   const speaker = node ? entityById(project, node.speakerId) : undefined;
-  const isCardNode = node?.kind === 'dialogue_fragment' || node?.kind === 'media_beat';
+  const isCardNode =
+    node?.kind === 'dialogue_fragment' || node?.kind === 'media_beat' || node?.kind === 'narration';
   const isHub = node?.kind === 'hub';
   const pastLines = isCardNode ? snap.transcript.slice(0, -1) : snap.transcript;
   const waiting = !snap.ended && !snap.error && snap.choices.length === 0 && !isHub;
@@ -76,14 +77,19 @@ function Playback({
           <View key={line.id} style={[styles.pastLine, line.kind === 'media' && styles.pastMedia]}>
             {line.kind === 'media' ? (
               <Text style={styles.mediaTag}>▶ MEDIA BEAT</Text>
-            ) : line.speaker ? (
+            ) : line.kind === 'narration' ? null : line.speaker ? (
               <Text style={styles.pastSpeaker}>{line.speaker}</Text>
             ) : null}
-            <Text style={styles.pastText}>{line.text}</Text>
+            <Text style={[styles.pastText, line.kind === 'narration' && styles.narrationText]}>{line.text}</Text>
           </View>
         ))}
 
-        {isCardNode && node ? (
+        {isCardNode && node && node.kind === 'narration' ? (
+          <View style={styles.narrationCard}>
+            <Text style={styles.narrationEyebrow}>NARRATION</Text>
+            <Text style={[styles.currentText, styles.narrationText]}>{node.text || node.displayName}</Text>
+          </View>
+        ) : isCardNode && node ? (
           <View style={[styles.currentCard, node.kind === 'media_beat' && styles.currentMedia]}>
             {node.kind === 'media_beat' ? (
               <Text style={styles.mediaTag}>▶ MEDIA BEAT — built later in the game</Text>
@@ -372,6 +378,15 @@ const styles = StyleSheet.create({
   currentMedia: { borderColor: '#e07b39', backgroundColor: '#241a12' },
   currentSpeaker: { fontSize: 13, fontWeight: '700', marginBottom: 6 },
   currentText: { color: theme.text, fontSize: 17, lineHeight: 25 },
+  narrationCard: { marginTop: 8, paddingHorizontal: 12, alignItems: 'center' },
+  narrationEyebrow: {
+    color: theme.faint,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  narrationText: { fontStyle: 'italic', color: theme.dim, textAlign: 'center', lineHeight: 24 },
   stage: { color: theme.dim, fontSize: 13, fontStyle: 'italic', marginTop: 10, lineHeight: 18 },
   hubPrompt: { color: theme.dim, fontSize: 15, fontWeight: '600', marginTop: 8 },
 

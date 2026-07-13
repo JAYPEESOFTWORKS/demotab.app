@@ -26,6 +26,7 @@ import { NodeEditorSheet } from '../components/NodeEditorSheet';
 
 const ADDABLE: { kind: NodeKind; hint: string }[] = [
   { kind: 'dialogue_fragment', hint: 'A single spoken line; becomes a player choice when branched to.' },
+  { kind: 'narration', hint: 'Narrator / cutscene prose (no character). Plays, then continues.' },
   { kind: 'dialogue', hint: 'Container for a conversation. Double-tap to open it.' },
   { kind: 'flow_fragment', hint: 'Container for any sub-flow (a quest, a chapter…).' },
   { kind: 'hub', hint: 'Routing point. Multiple outputs become player choices.' },

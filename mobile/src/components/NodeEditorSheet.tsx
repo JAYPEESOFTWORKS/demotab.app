@@ -124,6 +124,16 @@ export function NodeEditorSheet({
         />
       ) : null}
 
+      {node.kind === 'narration' ? (
+        <Field
+          label="Narration (the narrator’s voice)"
+          value={node.text}
+          onChangeText={(t) => patch({ text: t })}
+          placeholder="Time passed. The sector, once forgotten, held its breath…"
+          multiline
+        />
+      ) : null}
+
       {node.kind === 'media_beat' ? (
         <>
           <View style={sub.hintBox}>

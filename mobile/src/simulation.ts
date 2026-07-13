@@ -33,7 +33,7 @@ export interface TranscriptLine {
   id: string;
   speaker: string | null;
   text: string;
-  kind: 'line' | 'media';
+  kind: 'line' | 'media' | 'narration';
 }
 
 export interface SimSnapshot {
@@ -49,9 +49,11 @@ export interface SimSnapshot {
 
 const STEP_LIMIT = 1000;
 
+const PRESENTABLE = new Set<FlowNode['kind']>(['dialogue_fragment', 'media_beat', 'narration']);
+
 function choiceLabel(project: Project, node: FlowNode): string {
   if (node.menuText.trim()) return node.menuText;
-  if ((node.kind === 'dialogue_fragment' || node.kind === 'media_beat') && node.text.trim()) {
+  if (PRESENTABLE.has(node.kind) && node.text.trim()) {
     const t = node.text.trim();
     return t.length > 60 ? `${t.slice(0, 57)}…` : t;
   }
@@ -134,7 +136,7 @@ function pushTranscript(state: WalkState, project: Project, node: FlowNode) {
       id: `t${++transcriptCounter}`,
       speaker: speaker ? speaker.name : null,
       text: node.text,
-      kind: node.kind === 'media_beat' ? 'media' : 'line',
+      kind: node.kind === 'media_beat' ? 'media' : node.kind === 'narration' ? 'narration' : 'line',
     },
   ];
 }
@@ -180,7 +182,7 @@ function walk(project: Project, state: WalkState, entry: FlowNode | null): SimSn
   let node: FlowNode | null = entry;
   for (let steps = 0; steps < STEP_LIMIT; steps++) {
     if (node && node.isEnding) {
-      if (node.kind === 'dialogue_fragment' || node.kind === 'media_beat') {
+      if (PRESENTABLE.has(node.kind)) {
         pushTranscript(state, project, node);
       }
       try {
@@ -227,7 +229,8 @@ function walk(project: Project, state: WalkState, entry: FlowNode | null): SimSn
 
     switch (node.kind) {
       case 'dialogue_fragment':
-      case 'media_beat': {
+      case 'media_beat':
+      case 'narration': {
         pushTranscript(state, project, node);
         return { ...snapshotOf(state), node, choices: presentedChoices(project, state.vars, node), error: null };
       }

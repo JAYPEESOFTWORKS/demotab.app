@@ -124,11 +124,15 @@ function check(name: string, cond: boolean, detail?: unknown) {
   check('signal: Mara complete', status(m, mara) === 'complete', status(m, mara));
   check('signal: Priya now unblocked', status(m, priya) === 'ready', status(m, priya));
 
-  // Priya finishes through the media beat to the ending.
+  // Priya finishes through the media beat and narration to the ending.
   m = advance(m, priya); // p3 -> media beat
   const beat = threadSnapshot(sample, m, priya)!;
   check('signal: media beat is presented', beat.node?.kind === 'media_beat', beat.node?.kind);
-  m = advance(m, priya); // media beat -> ending
+  m = advance(m, priya); // media beat -> narration
+  const narr = threadSnapshot(sample, m, priya)!;
+  check('signal: narration beat is presented', narr.node?.kind === 'narration', narr.node?.kind);
+  check('signal: narration recorded as its own transcript kind', narr.transcript.some((l) => l.kind === 'narration'));
+  m = advance(m, priya); // narration -> ending
   check('signal: story finished at the ending', m.finished === true);
   check('signal: Priya reached the ending', status(m, priya) === 'complete');
 }
